@@ -25,7 +25,6 @@ import signal
 import threading
 from threading import Thread
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import secrets
 import os
 import shutil
 import base64
@@ -57,7 +56,7 @@ class fileRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type','text/html')
         self.end_headers()
         while "Bad token":
-            randomToken = secrets.token_urlsafe(6)
+            randomToken = binascii.hexlify(os.urandom(6)).decode()
             if not os.path.exists(directory+"/"+randomToken):
                 break
         os.makedirs(directory+"/"+randomToken,666)
