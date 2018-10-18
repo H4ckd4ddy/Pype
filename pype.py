@@ -16,8 +16,8 @@
 url = "http://pype.sellan.fr/"
 port = 80
 directory = "/tmp"
-deleteLimit = 0#hours
-cleaningInterval = 0.001#hours
+deleteLimit = 24#hours
+cleaningInterval = 1#hours
 idLength = 2#bytes
 maxNameLength = 64#chars
 maxFileSize = 52428800#bytes
