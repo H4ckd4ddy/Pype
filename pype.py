@@ -16,8 +16,8 @@
 url = "http://pype.sellan.fr/"
 port = 80
 directory = "/tmp"
-deleteLimit = 24#hours
-cleaningInterval = 1#hours
+deleteLimit = 0#hours
+cleaningInterval = 0.001#hours
 idLength = 2#bytes
 maxNameLength = 64#chars
 maxFileSize = 52428800#bytes
@@ -34,7 +34,7 @@ import shutil
 import base64
 
 class fileRequestHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
+    def do_GET(self):#For home page and download
         filePath = directory+"/pype"+self.path
         if self.path != "/" and os.path.exists(filePath):
             with open(filePath, 'rb') as file:
@@ -53,31 +53,31 @@ class fileRequestHandler(BaseHTTPRequestHandler):
             html = base64.urlsafe_b64decode(html)
             self.wfile.write(str.encode(html.decode("utf-8").replace("[url]",url)))
         return
-    def do_PUT(self):
-        length = int(self.headers['Content-Length'])
-        content = self.rfile.read(length)
-        self.send_response(200)
-        self.send_header('Content-type','text/html')
-        self.end_headers()
-        fileName = self.path.split("/")[-1]
-        if len(fileName) > 64:
-            self.wfile.write(str.encode("Error: Too long file name (max {} chars)\n".format(maxNameLength)))
+    def do_PUT(self):#For upload
+        length = int(self.headers['Content-Length'])#Get the request size in header
+        self.send_response(200)#Send success header
+        self.send_header('Content-type','text/html')#Send mime
+        self.end_headers()#Close header
+        fileName = self.path.split("/")[-1]#Only take the file name
+        if len(fileName) > maxNameLength:#Check file name length
+            self.wfile.write(str.encode("Error: Too long file name (max {} chars)\n".format(maxNameLength)))#Return error
             return
-        if length > maxFileSize:
-            self.wfile.write(str.encode("Error: Too big file (max {})\n".format(humanReadable(maxFileSize))))
+        if length > maxFileSize:#Check file size
+            self.wfile.write(str.encode("Error: Too big file (max {})\n".format(humanReadable(maxFileSize))))#Return error
             return
-        if not os.path.exists(directory+"/pype/"):
+        content = self.rfile.read(length)#Read content from request
+        if not os.path.exists(directory+"/pype/"):#Create directory for Pype if not exist
             os.makedirs(directory+"/pype/",666)
-        while "Bad token":
-            randomToken = binascii.hexlify(os.urandom(idLength)).decode()
-            if not os.path.exists(directory+"/pype/"+randomToken):
+        while "Bad token":#Loop for generating uniq token
+            randomToken = binascii.hexlify(os.urandom(idLength)).decode()#Get random token from urandom
+            if not os.path.exists(directory+"/pype/"+randomToken):#If direcory not exist -> token free
                 break
-        os.makedirs(directory+"/pype/"+randomToken,666)
-        filePath = directory+"/pype/"+randomToken+"/"+fileName
-        currentFile = open(filePath,"wb")
-        currentFile.write(content)
+        os.makedirs(directory+"/pype/"+randomToken,666)#Create the token directory
+        filePath = directory+"/pype/"+randomToken+"/"+fileName#Concat the new file full path
+        currentFile = open(filePath,"wb")#Open new file to write binary data
+        currentFile.write(content)#Write content of request
         currentFile.close()
-        self.wfile.write(str.encode(url+randomToken+"/"+fileName+"\n"))
+        self.wfile.write(str.encode(url+randomToken+"/"+fileName+"\n"))#Return new file url to user
         return
 
 def run_on(port):
@@ -94,7 +94,7 @@ def run_on(port):
     httpd = HTTPServer(server_address, fileRequestHandler)
     httpd.serve_forever()
 
-def humanReadable(bytes):
+def humanReadable(bytes):#Convert bytes to human readable string fomat
     units = ['o','Ko','Mo','Go','To','Po']
     cursor = 0
     while bytes > 1024:
@@ -111,14 +111,17 @@ def setInterval(func,time):
         func()
 
 def cleanFiles():
+    removed = []
     now = time.time()
     limitDate = now - (deleteLimit * 3600)
-    for file in os.listdir(directory):
+    for file in os.listdir(directory+"/pype/"):
         if os.path.exists(directory+"/pype/"+file):
-            stats = os.stat( directory + "/pype/" + xfile )
+            stats = os.stat( directory + "/pype/" + file )
             timestamp = stats.st_ctime
             if timestamp < limitDate:
-                os.rmtree(directory+"/pype/"+file)
+                removed.append(file)
+                shutil.rmtree(directory+"/pype/"+file)
+    print("Files removed : {}".format(', '.join(removed)))
 
 if __name__ == "__main__":
     server = Thread(target=run_on, args=[port])
