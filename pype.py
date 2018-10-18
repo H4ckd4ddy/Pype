@@ -19,6 +19,8 @@ directory = "/tmp"
 deleteLimit = 24#hours
 cleaningInterval = 1#hours
 idLength = 2#bytes
+maxNameLength = 64#chars
+maxFileSize = 52428800#bytes
 #SETTINGS END
 
 import sys,time
@@ -57,6 +59,13 @@ class fileRequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type','text/html')
         self.end_headers()
+        fileName = self.path.split("/")[-1]
+        if len(fileName) > 64:
+            self.wfile.write(str.encode("Error: Too long file name (max {} chars)\n".format(maxNameLength)))
+            return
+        if length > maxFileSize:
+            self.wfile.write(str.encode("Error: Too big file (max {})\n".format(humanReadable(maxFileSize))))
+            return
         if not os.path.exists(directory+"/pype/"):
             os.makedirs(directory+"/pype/",666)
         while "Bad token":
@@ -64,7 +73,6 @@ class fileRequestHandler(BaseHTTPRequestHandler):
             if not os.path.exists(directory+"/pype/"+randomToken):
                 break
         os.makedirs(directory+"/pype/"+randomToken,666)
-        fileName = self.path.split("/")[-1]
         filePath = directory+"/pype/"+randomToken+"/"+fileName
         currentFile = open(filePath,"wb")
         currentFile.write(content)
@@ -85,7 +93,18 @@ def run_on(port):
     server_address = ('localhost', port)
     httpd = HTTPServer(server_address, fileRequestHandler)
     httpd.serve_forever()
-    
+
+def humanReadable(bytes):
+    units = ['o','Ko','Mo','Go','To','Po']
+    cursor = 0
+    while bytes > 1024:
+        bytes /= 1024
+        cursor += 1
+    value = str(bytes).split('.')
+    value[1] = value[1][:2]
+    value = '.'.join(value)
+    return value+' '+units[cursor]
+
 def setInterval(func,time):
     e = threading.Event()
     while not e.wait(time):
