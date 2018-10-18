@@ -121,7 +121,8 @@ def cleanFiles():
             if timestamp < limitDate:
                 removed.append(file)
                 shutil.rmtree(directory+"/pype/"+file)
-    print("Files removed : {}".format(', '.join(removed)))
+    if len(removed) > 0:
+        print("Files removed : {}".format(', '.join(removed)))
 
 if __name__ == "__main__":
     server = Thread(target=run_on, args=[port])
