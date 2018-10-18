@@ -33,7 +33,7 @@ import binascii
 import shutil
 import base64
 
-class fileRequestHandler(BaseHTTPRequestHandler):
+class requestHandler(BaseHTTPRequestHandler):
     def do_GET(self):#For home page and download
         filePath = directory+"/pype"+self.path
         if self.path != "/" and os.path.exists(filePath):
@@ -91,7 +91,7 @@ def run_on(port):
     print("To download :      curl {}/[id]/file.txt > files.txt".format(url))
     print("\n\nLogs : \n")
     server_address = ('localhost', port)
-    httpd = HTTPServer(server_address, fileRequestHandler)
+    httpd = HTTPServer(server_address, requestHandler)
     httpd.serve_forever()
 
 def humanReadable(bytes):#Convert bytes to human readable string fomat
