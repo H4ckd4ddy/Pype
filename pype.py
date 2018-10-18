@@ -18,6 +18,7 @@ port = 80
 directory = "/tmp"
 deleteLimit = 24#hours
 cleaningInterval = 1#hours
+idLength = 2#bytes
 #SETTINGS END
 
 import sys,time
@@ -26,6 +27,7 @@ import threading
 from threading import Thread
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
+import binascii
 import shutil
 import base64
 
@@ -56,7 +58,7 @@ class fileRequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type','text/html')
         self.end_headers()
         while "Bad token":
-            randomToken = binascii.hexlify(os.urandom(6)).decode()
+            randomToken = binascii.hexlify(os.urandom(idLength)).decode()
             if not os.path.exists(directory+"/"+randomToken):
                 break
         os.makedirs(directory+"/"+randomToken,666)
