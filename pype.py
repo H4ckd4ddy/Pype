@@ -33,7 +33,7 @@ import base64
 
 class fileRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        filePath = directory+self.path
+        filePath = directory+"/pype"+self.path
         if self.path != "/" and os.path.exists(filePath):
             with open(filePath, 'rb') as file:
                 self.send_response(200)
@@ -57,13 +57,15 @@ class fileRequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type','text/html')
         self.end_headers()
+        if not os.path.exists(directory+"/pype/"):
+            os.makedirs(directory+"/pype/",666)
         while "Bad token":
             randomToken = binascii.hexlify(os.urandom(idLength)).decode()
-            if not os.path.exists(directory+"/"+randomToken):
+            if not os.path.exists(directory+"/pype/"+randomToken):
                 break
-        os.makedirs(directory+"/"+randomToken,666)
+        os.makedirs(directory+"/pype/"+randomToken,666)
         fileName = self.path.split("/")[-1]
-        filePath = directory+"/"+randomToken+"/"+fileName
+        filePath = directory+"/pype/"+randomToken+"/"+fileName
         currentFile = open(filePath,"wb")
         currentFile.write(content)
         currentFile.close()
@@ -93,11 +95,11 @@ def cleanFiles():
     now = time.time()
     limitDate = now - (deleteLimit * 3600)
     for file in os.listdir(directory):
-        if os.path.exists(directory+"/"+file):
-            stats = os.stat( directory + "/" + xfile )
+        if os.path.exists(directory+"/pype/"+file):
+            stats = os.stat( directory + "/pype/" + xfile )
             timestamp = stats.st_ctime
             if timestamp < limitDate:
-                os.rmtree(directory+"/"+file)
+                os.rmtree(directory+"/pype/"+file)
 
 if __name__ == "__main__":
     server = Thread(target=run_on, args=[port])
