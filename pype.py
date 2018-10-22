@@ -35,16 +35,30 @@ import base64
 
 class requestHandler(BaseHTTPRequestHandler):
     def do_GET(self):#For home page and download
-        filePath = directory+"/pype"+self.path
-        if self.path != "/" and os.path.exists(filePath):
-            with open(filePath, 'rb') as file:
+        if '?' in self.path:
+            option = self.path.split('?')[1]
+            requestPath = self.path.split('?')[0]
+        else:
+            option = None
+            requestPath = self.path
+        filePath = directory+"/pype"+requestPath
+        if requestPath != "/" and os.path.exists(filePath):
+            if option == "info":
                 self.send_response(200)
-                self.send_header("Content-Type", 'application/octet-stream')
-                self.send_header("Content-Disposition", 'attachment; filename="{}"'.format(os.path.basename(filePath)))
-                fs = os.fstat(file.fileno())
-                self.send_header("Content-Length", str(fs.st_size))
+                self.send_header('Content-type','text/html')
                 self.end_headers()
-                shutil.copyfileobj(file, self.wfile)
+                self.wfile.write(str.encode("About this file...\n"))
+            else:
+                with open(filePath, 'rb') as file:
+                    self.send_response(200)
+                    self.send_header("Content-Type", 'application/octet-stream')
+                    self.send_header("Content-Disposition", 'attachment; filename="{}"'.format(os.path.basename(filePath)))
+                    fs = os.fstat(file.fileno())
+                    self.send_header("Content-Length", str(fs.st_size))
+                    self.end_headers()
+                    shutil.copyfileobj(file, self.wfile)
+                    if option == "delete":
+                        print("Delete this file")
         else:
             self.send_response(200)
             self.send_header('Content-type','text/html')
@@ -70,7 +84,7 @@ class requestHandler(BaseHTTPRequestHandler):
             os.makedirs(directory+"/pype/",666)
         while "Bad token":#Loop for generating uniq token
             randomToken = binascii.hexlify(os.urandom(idLength)).decode()#Get random token from urandom
-            if not os.path.exists(directory+"/pype/"+randomToken):#If direcory not exist -> token free
+            if not os.path.exists(directory+"/pype/"+randomToken):#If directory not exist -> token free
                 break
         os.makedirs(directory+"/pype/"+randomToken,666)#Create the token directory
         filePath = directory+"/pype/"+randomToken+"/"+fileName#Concat the new file full path
@@ -94,7 +108,7 @@ def run_on(port):
     httpd = HTTPServer(server_address, requestHandler)
     httpd.serve_forever()
 
-def humanReadable(bytes):#Convert bytes to human readable string fomat
+def humanReadable(bytes):#Convert bytes to human readable string format
     units = ['o','Ko','Mo','Go','To','Po']
     cursor = 0
     while bytes > 1024:
