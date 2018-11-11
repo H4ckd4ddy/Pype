@@ -53,36 +53,46 @@ def path_initialisation():
         os.makedirs(array_to_path(directory), 666)
 
 
+def initialisation():
+    path_initialisation()
+
 
 class request_handler(BaseHTTPRequestHandler):
     def do_GET(self):  # For home page and download
+        # Check for options
         if '?' in self.path:
-            option = self.path.split('?')[1]
-            request_path = self.path.split('?')[0]
+            # Split options of request
+            self.option = self.path.split('?')[1]
+            self.request_path = self.path.split('?')[0]
         else:
-            option = None
-            request_path = self.path
-        file_path = directory+"/pype"+request_path
-        if request_path != "/" and os.path.exists(file_path):
-            if option == "info":
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                self.wfile.write(str.encode("About this file...\n"))
-            else:
-                file = open(file_path, 'rb')
-                self.send_response(200)
-                self.send_header("Content-Type", 'application/octet-stream')
-                contentDisposition = 'attachment; filename="{}"'
-                tmpPath = os.path.basename(file_path)
-                contentDisposition = contentDisposition.format(tmpPath)
-                self.send_header("Content-Disposition", )
-                fs = os.fstat(file.fileno())
-                self.send_header("Content-Length", str(fs.st_size))
-                self.end_headers()
-                shutil.copyfileobj(file, self.wfile)
-                if option == "delete":
-                    print("Delete this file")
+            self.option = None
+            self.request_path = self.path
+        # Convert path of request to array for easy manipulation
+        self.request_path = path_to_array(self.request_path)
+        # Construct full path of the file
+        self.file_path = (directory, "pype", self.request_path)
+        if len(self.request_path) > 0 and os.path.exists(array_to_path(self.file_path)):
+            with open(array_to_path(self.file_path), 'rb') as self.file:
+                # Load file stats
+                self.file.stat = os.fstat(self.file.fileno())
+                if option == "info":
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    self.wfile.write(str.encode("Name: {}\nSize: {}\nCountdown: ".format(self.file.name, self.file.stat.st_size)))
+                else:
+                    self.send_response(200)
+                    self.send_header("Content-Type", 'application/octet-stream')
+                    contentDisposition = 'attachment; filename="{}"'
+                    #tmpPath = os.path.basename(file_path)
+                    contentDisposition = contentDisposition.format(self.file.name)
+                    self.send_header("Content-Disposition", )
+                    self.send_header("Content-Length", str(self.file.stat.st_size))
+                    self.end_headers()
+                    shutil.copyfileobj(self.file, self.wfile)
+                    if option == "delete":
+                        shutil.rmtree(array_to_path(file_path))
+                        print("{} deleted !".format(array_to_path(file_path)))
         else:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
@@ -181,6 +191,7 @@ def clean_files():
 
 
 if __name__ == "__main__":
+    path_initialisation()
     server = Thread(target=run_on, args=[port])
     server.daemon = True
     server.start()
