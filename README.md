@@ -3,17 +3,17 @@ Simple file sharing server, to upload and download file from cli
 
 ## Usage
 
-####Launch server
+#### Launch server
 ```
 ./pype.py
 ```
 
-####Upload a file
+#### Upload a file
 ```
 curl -T file.txt https://pype.sellan.fr
 ```
 
-####Download a file
+#### Download a file
 ```
 curl https://pype.sellan.fr/id/file.txt > file.txt
 ```
@@ -22,7 +22,7 @@ or
 wget https://pype.sellan.fr/id/file.txt
 ```
 
-####Delete file after download
+#### Delete file after download
 ```
 curl https://pype.sellan.fr/id/file.txt?delete > file.txt
 ```
@@ -31,7 +31,7 @@ or
 wget https://pype.sellan.fr/id/file.txt?delete
 ```
 
-####Get infos about a file
+#### Get infos about a file
 ```
 curl https://pype.sellan.fr/id/file.txt?info
 ```
