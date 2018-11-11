@@ -36,12 +36,15 @@ max_file_size = 52428800  # bytes
 
 
 def path_to_array(path):
+    # Split path
     path_array = path.split('/')
+    # Remove empty elements
     path_array = [element for element in path_array if element]
     return path_array
 
 
 def array_to_path(path_array):
+    # Join array
     return '/'.join(path_array)
 
 
@@ -191,9 +194,9 @@ def clean_files():
 
 
 if __name__ == "__main__":
-    path_initialisation()
     server = Thread(target=run_on, args=[port])
     server.daemon = True
     server.start()
+    initialisation()
     set_interval(clean_files, (cleaning_interval * 3600))
     signal.pause()
