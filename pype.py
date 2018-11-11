@@ -76,7 +76,7 @@ class request_handler(BaseHTTPRequestHandler):
         # Convert path of request to array for easy manipulation
         self.request_path = path_to_array(self.request_path)
         # Construct full path of the file
-        self.file_path = directory + ["pype"] + self.request_path
+        self.file_path = directory + self.request_path
         if len(self.request_path) > 0 and os.path.exists(array_to_path(self.file_path)):
             with open(array_to_path(self.file_path), 'rb') as self.file:
                 # Load file stats
@@ -141,12 +141,12 @@ class request_handler(BaseHTTPRequestHandler):
             # Get random token from urandom
             random_token = binascii.hexlify(os.urandom(id_length)).decode()
             # If directory not exist -> token free
-            if not os.path.exists(array_to_path(directory+["pype", random_token])):
+            if not os.path.exists(array_to_path(directory+[random_token])):
                 break
         # Create the token directory
-        os.makedirs(array_to_path(directory+["pype", random_token]), 666)
+        os.makedirs(array_to_path(directory+[random_token]), 666)
         # Concat the new file full path
-        self.file_path = directory+["pype", random_token, self.file_name]
+        self.file_path = directory+[random_token, self.file_name]
         # Open new file to write binary data
         current_file = open(array_to_path(self.file_path), "wb")
         # Write content of request
@@ -196,13 +196,13 @@ def clean_files():
     now = time.time()
     # Compute the limit_date from setings
     limit_date = now - (delete_limit * 3600)
-    for file in os.listdir(directory+"/pype/"):
-        if os.path.exists(directory+"/pype/"+file):
-            stats = os.stat(directory+"/pype/"+file)
+    for file in os.listdir(array_to_path(directory)):
+        if os.path.exists(array_to_path(directory+[file])):
+            stats = os.stat(array_to_path(directory+[file]))
             timestamp = stats.st_ctime
             if timestamp < limit_date:
                 removed.append(file)
-                shutil.rmtree(directory+"/pype/"+file)
+                shutil.rmtree(array_to_path(directory+[file]))
     if len(removed) > 0:
         print("Files removed : {}".format(', '.join(removed)))
 
