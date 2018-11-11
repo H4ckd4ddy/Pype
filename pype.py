@@ -17,7 +17,7 @@ import time
 import signal
 import threading
 from threading import Thread
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, base_HTTP_request_handler
 import os
 import binascii
 import shutil
@@ -27,53 +27,54 @@ import base64
 url = "http://pype.sellan.fr/"
 port = 80
 directory = "/tmp"
-deleteLimit = 24  # hours
-cleaningInterval = 1  # hours
-idLength = 2  # bytes
-maxNameLength = 64  # chars
-maxFileSize = 52428800  # bytes
+delete_limit = 24  # hours
+cleaning_interval = 1  # hours
+id_length = 2  # bytes
+max_name_length = 64  # chars
+max_file_size = 52428800  # bytes
 # SETTINGS END
 
 
-def path2Array(path):
-    pathArray = path.split('/')
-    pathArray = [element for element in pathArray if element]
-    return pathArray
+def path_to_array(path):
+    path_array = path.split('/')
+    path_array = [element for element in path_array if element]
+    return path_array
 
 
-def array2Path(pathArray):
-    return '/'.join(pathArray)
+def array_to_path(path_array):
+    return '/'.join(path_array)
 
 
-def pathInitialisation():
-    directory = path2Array(directory)
+def path_initialisation():
+    directory = path_to_array(directory)
     directory.append("pype")
     # Create directory for Pype if not exist
-    if not os.path.exists(array2Path(directory)):
-        os.makedirs(array2Path(directory), 666)
+    if not os.path.exists(array_to_path(directory)):
+        os.makedirs(array_to_path(directory), 666)
 
 
-class requestHandler(BaseHTTPRequestHandler):
+
+class request_handler(base_HTTP_request_handler):
     def do_GET(self):  # For home page and download
         if '?' in self.path:
             option = self.path.split('?')[1]
-            requestPath = self.path.split('?')[0]
+            request_path = self.path.split('?')[0]
         else:
             option = None
-            requestPath = self.path
-        filePath = directory+"/pype"+requestPath
-        if requestPath != "/" and os.path.exists(filePath):
+            request_path = self.path
+        file_path = directory+"/pype"+request_path
+        if request_path != "/" and os.path.exists(file_path):
             if option == "info":
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
                 self.wfile.write(str.encode("About this file...\n"))
             else:
-                file = open(filePath, 'rb')
+                file = open(file_path, 'rb')
                 self.send_response(200)
                 self.send_header("Content-Type", 'application/octet-stream')
                 contentDisposition = 'attachment; filename="{}"'
-                tmpPath = os.path.basename(filePath)
+                tmpPath = os.path.basename(file_path)
                 contentDisposition = contentDisposition.format(tmpPath)
                 self.send_header("Content-Disposition", )
                 fs = os.fstat(file.fileno())
@@ -97,37 +98,37 @@ class requestHandler(BaseHTTPRequestHandler):
         self.send_response(200)  # Send success header
         self.send_header('Content-type', 'text/html')  # Send mime
         self.end_headers()  # Close header
-        fileName = self.path.split("/")[-1]  # Only take the file name
-        if len(fileName) > maxNameLength:  # Check file name length
-            htmlError = "Error: Too long file name (max {} chars)\n"
-            htmlError = htmlError.format(maxNameLength)
-            self.wfile.write(str.encode(htmlError))  # Return error
+        file_name = self.path.split("/")[-1]  # Only take the file name
+        if len(file_name) > max_name_length:  # Check file name length
+            HTML_error = "Error: Too long file name (max {} chars)\n"
+            HTML_error = HTML_error.format(max_name_length)
+            self.wfile.write(str.encode(HTML_error))  # Return error
             return
-        if length > maxFileSize:  # Check file size
-            htmlError = "Error: Too big file (max {})\n"
-            htmlError = htmlError.format(humanReadable(maxFileSize))
-            self.wfile.write(str.encode(htmlError))  # Return error
+        if length > max_file_size:  # Check file size
+            HTML_error = "Error: Too big file (max {})\n"
+            HTML_error = HTML_error.format(human_readable(max_file_size))
+            self.wfile.write(str.encode(HTML_error))  # Return error
             return
         # Read content from request
         content = self.rfile.read(length)
         # Loop for generating uniq token
         while "Bad token":
             # Get random token from urandom
-            randomToken = binascii.hexlify(os.urandom(idLength)).decode()
+            random_token = binascii.hexlify(os.urandom(id_length)).decode()
             # If directory not exist -> token free
-            if not os.path.exists(directory+"/pype/"+randomToken):
+            if not os.path.exists(directory+"/pype/"+random_token):
                 break
         # Create the token directory
-        os.makedirs(directory+"/pype/"+randomToken, 666)
+        os.makedirs(directory+"/pype/"+random_token, 666)
         # Concat the new file full path
-        filePath = directory+"/pype/"+randomToken+"/"+fileName
+        file_path = directory+"/pype/"+random_token+"/"+file_name
         # Open new file to write binary data
-        currentFile = open(filePath, "wb")
+        current_file = open(file_path, "wb")
         # Write content of request
-        currentFile.write(content)
-        currentFile.close()
+        current_file.write(content)
+        current_file.close()
         # Return new file url to user
-        self.wfile.write(str.encode(url+randomToken+"/"+fileName+"\n"))
+        self.wfile.write(str.encode(url+random_token+"/"+file_name+"\n"))
         return
 
 
@@ -142,11 +143,11 @@ def run_on(port):
     print("To download :      curl {}/[id]/file.txt > files.txt".format(url))
     print("\n\nLogs : \n")
     server_address = ('localhost', port)
-    httpd = HTTPServer(server_address, requestHandler)
+    httpd = HTTPServer(server_address, request_handler)
     httpd.serve_forever()
 
 
-def humanReadable(bytes):  # Convert bytes to human readable string format
+def human_readable(bytes):  # Convert bytes to human readable string format
     units = ['o', 'Ko', 'Mo', 'Go', 'To', 'Po']
     cursor = 0
     while bytes > 1024:
@@ -158,21 +159,21 @@ def humanReadable(bytes):  # Convert bytes to human readable string format
     return value+' '+units[cursor]
 
 
-def setInterval(func, time):
+def set_interval(func, time):
     e = threading.Event()
     while not e.wait(time):
         func()
 
 
-def cleanFiles():
+def clean_files():
     removed = []
     now = time.time()
-    limitDate = now - (deleteLimit * 3600)
+    limit_date = now - (delete_limit * 3600)
     for file in os.listdir(directory+"/pype/"):
         if os.path.exists(directory+"/pype/"+file):
             stats = os.stat(directory+"/pype/"+file)
             timestamp = stats.st_ctime
-            if timestamp < limitDate:
+            if timestamp < limit_date:
                 removed.append(file)
                 shutil.rmtree(directory+"/pype/"+file)
     if len(removed) > 0:
@@ -183,5 +184,5 @@ if __name__ == "__main__":
     server = Thread(target=run_on, args=[port])
     server.daemon = True
     server.start()
-    setInterval(cleanFiles, (cleaningInterval * 3600))
+    set_interval(clean_files, (cleaning_interval * 3600))
     signal.pause()
