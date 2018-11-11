@@ -86,59 +86,7 @@ class requestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            html = "PCFET0NUWVBFIGh0bWw+CjxodG1sPgoJPGhlYWQ+CgkJPG1ldGEgY2hhcn\
-                   NldD0nVVRGLTgnPgoJCTx0aXRsZT5QeXBlPC90aXRsZT4KCQk8c3R5bGU+C\
-                   gkJCWJvZHkgewoJCQkJZm9udC1mYW1pbHk6IGNvdXJpZXIsYXJpYWw7CgkJ\
-                   CQljb2xvcjogd2hpdGU7CgkJCX0KCQkJI21haW5fdGl0bGUgewoJCQkJcG9\
-                   zaXRpb246IGFic29sdXRlOwoJCQkJdG9wOiAzMHB4OwoJCQkJbGVmdDogMz\
-                   BweDsKCQkJCWNvbG9yOiAjMjk4MGNjOwoJCQkJZm9udC13ZWlnaHQ6IGJvb\
-                   GQ7CgkJCQlmb250LXNpemU6IDMwcHg7CgkJCX0KCQkJI0NMSSB7CgkJCQlo\
-                   ZWlnaHQ6IDMwMHB4OwoJCQkJd2lkdGg6IDY1MHB4OwoJCQkJcGFkZGluZzo\
-                   gMjVweDsKCQkJCXBvc2l0aW9uOiBhYnNvbHV0ZTsKCQkJCW1hcmdpbjogYX\
-                   V0bzsKCQkJCXRvcDogMDsKCQkJCXJpZ2h0OiAwOwoJCQkJYm90dG9tOiAwO\
-                   woJCQkJbGVmdDogMDsKCQkJCWJhY2tncm91bmQ6IGJsYWNrOwoJCQkJYm9y\
-                   ZGVyLXJhZGl1czogMCAwIDdweCA3cHg7CgkJCX0KCQkJCgkJCSNDTEkgI2J\
-                   hciB7CgkJCQlwb3NpdGlvbjogYWJzb2x1dGU7CgkJCQl0b3A6IC0yNXB4Ow\
-                   oJCQkJbGVmdDogMDsKCQkJCXJpZ2h0OiAwOwoJCQkJd2lkdGg6IDEwMCU7C\
-                   gkJCQloZWlnaHQ6IDI1cHg7CgkJCQlib3JkZXItcmFkaXVzOiA3cHggN3B4\
-                   IDAgMDsKCQkJCWJhY2tncm91bmQ6ICNlMGUwZTA7CgkJCQl0ZXh0LWFsaWd\
-                   uOiBjZW50ZXI7CgkJCX0KCQkJCgkJCSNDTEkgI2JhciAjdGl0bGUgewoJCQ\
-                   kJZm9udC1zaXplOiA4MCU7CgkJCQljb2xvcjogIzc1NzU3NTsKCQkJCW1hc\
-                   mdpbi10b3A6IDVweDsKCQkJfQoJCQkjQ0xJICNiYXIgI2dyZWVuIHsKCQkJ\
-                   CXBvc2l0aW9uOiBhYnNvbHV0ZTsKCQkJCXRvcDogNXB4OwoJCQkJcmlnaHQ\
-                   6IDEwcHg7CgkJCQloZWlnaHQ6IDE1cHg7CgkJCQl3aWR0aDogMTVweDsKCQ\
-                   kJCWJvcmRlci1yYWRpdXM6IDI1cHg7CgkJCQliYWNrZ3JvdW5kOiAjM2NiY\
-                   TNjOwoJCQkJYm9yZGVyOiBzb2xpZCAxcHggZ3JleTsKCQkJfQoJCQkjQ0xJ\
-                   ICNiYXIgI29yYW5nZSB7CgkJCQlwb3NpdGlvbjogYWJzb2x1dGU7CgkJCQl\
-                   0b3A6IDVweDsKCQkJCXJpZ2h0OiAzM3B4OwoJCQkJaGVpZ2h0OiAxNXB4Ow\
-                   oJCQkJd2lkdGg6IDE1cHg7CgkJCQlib3JkZXItcmFkaXVzOiAyNXB4OwoJC\
-                   QkJYmFja2dyb3VuZDogI2ZjYmQ1MTsKCQkJCWJvcmRlcjogc29saWQgMXB4\
-                   IGdyZXk7CgkJCX0KCQkJI0NMSSAjYmFyICNyZWQgewoJCQkJcG9zaXRpb24\
-                   6IGFic29sdXRlOwoJCQkJdG9wOiA1cHg7CgkJCQlyaWdodDogNTZweDsKCQ\
-                   kJCWhlaWdodDogMTVweDsKCQkJCXdpZHRoOiAxNXB4OwoJCQkJYm9yZGVyL\
-                   XJhZGl1czogMjVweDsKCQkJCWJhY2tncm91bmQ6ICNmZjU3NTc7CgkJCQli\
-                   b3JkZXI6IHNvbGlkIDFweCBncmV5OwoJCQl9CgkJCSN0ZXh0ZSB7CgkJCQl\
-                   tYXJnaW4tdG9wOiA1MHB4OwoJCQkJZm9udC1zaXplOiAxNXB4OwoJCQl9Cg\
-                   kJCSNhdXRob3IgewoJCQkJcG9zaXRpb246IGFic29sdXRlOwoJCQkJYm90d\
-                   G9tOiAxMHB4OwoJCQkJbGVmdDogMTBweDsKCQkJCWNvbG9yOiAjODA4MDgw\
-                   OwoJCQl9CgkJPC9zdHlsZT4KCTwvaGVhZD4KCTxib2R5PgoJCTxkaXYgaWQ\
-                   9J21haW5fdGl0bGUnPlB5cGU8L2Rpdj4KCQk8YSBocmVmPSJodHRwczovL2\
-                   dpdGh1Yi5jb20vc2VsbGFuL1B5cGUiIHRhcmdldD0iX2JsYW5rIj48aW1nI\
-                   HN0eWxlPSJwb3NpdGlvbjogYWJzb2x1dGU7IHRvcDogMDsgcmlnaHQ6IDA7\
-                   IGJvcmRlcjogMDsiIHNyYz0iaHR0cHM6Ly9zMy5hbWF6b25hd3MuY29tL2d\
-                   pdGh1Yi9yaWJib25zL2ZvcmttZV9yaWdodF9yZWRfYWEwMDAwLnBuZyIgYW\
-                   x0PSJGb3JrIG1lIG9uIEdpdEh1YiI+PC9hPgoJCTxkaXYgaWQ9J0NMSSc+C\
-                   gkJCTxkaXYgaWQ9J2Jhcic+CgkJCQk8ZGl2IGlkPSd0aXRsZSc+UHlwZSAt\
-                   IFt1cmxdPC9kaXY+CgkJCQk8ZGl2IGlkPSdncmVlbic+PC9kaXY+CgkJCQk\
-                   8ZGl2IGlkPSdvcmFuZ2UnPjwvZGl2PgoJCQkJPGRpdiBpZD0ncmVkJz48L2\
-                   Rpdj4KCQkJPC9kaXY+CgkJCTxkaXYgaWQ9J3RleHRlJz4KCQkJCVNpbXBsZ\
-                   SBmaWxlIHNoYXJpbmcgc2VydmVyLCB0byB1cGxvYWQgYW5kIGRvd25sb2Fk\
-                   IGZpbGUgZnJvbSBDTEkKCQkJCTxici8+PGJyLz48YnIvPgoJCQkJVG8gdXB\
-                   sb2FkCToJY3VybCAtVCBmaWxlLnR4dCBbdXJsXTxici8+CgkJCQlUbyBkb3\
-                   dubG9hZAk6CWN1cmwgW3VybF0vW2lkXS9maWxlLnR4dCA+IGZpbGVzLnR4d\
-                   Dxici8+CgkJCTwvZGl2PgoJCTwvZGl2PgoJCTxhIGhyZWY9Imh0dHBzOi8v\
-                   Y29udGFjdC5zZWxsYW4uZnIiPjxkaXYgaWQ9ImF1dGhvciI+RXRpZW5uZSB\
-                   TRUxMQU48L2Rpdj48L2E+Cgk8L2JvZHk+CjwvaHRtbD4="
+            html = "test"
             html = base64.urlsafe_b64decode(html).decode("utf-8")
             self.wfile.write(str.encode(html.replace("[url]", url)))
         return
