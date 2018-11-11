@@ -22,6 +22,7 @@ import os
 import binascii
 import shutil
 import base64
+import sqlite3
 
 # SETTINGS BEGIN
 url = "http://pype.sellan.fr/"
@@ -33,6 +34,7 @@ id_length = 2  # bytes
 max_name_length = 64  # chars
 max_file_size = 52428800  # bytes
 logs_path = "/var/log"
+database = sqlite3.connect('pype.db')
 # SETTINGS END
 
 
@@ -50,6 +52,14 @@ def array_to_path(path_array):
     return path
 
 
+def write_logs(message,error=False):
+    now = time.asctime(time.localtime(time.time()))
+    logs_file = 'request.log' if error else 'error.log'
+    logs_full_path = array_to_path(logs_path + [logs_file])
+    with open(logs_full_path, 'a') as logs:
+        logs.write("{} : {}\n".format(now, message))
+
+
 def path_initialisation():
     global directory
     directory = path_to_array(directory)
@@ -65,16 +75,17 @@ def path_initialisation():
         os.makedirs(array_to_path(logs_path), 666)
 
 
-def write_logs(message,error=False):
-    now = time.asctime(time.localtime(time.time()))
-    logs_file = 'request.log' if error else 'error.log'
-    logs_full_path = array_to_path(logs_path + [logs_file])
-    with open(logs_full_path, 'a') as logs:
-        logs.write("{} : {}\n".format(now, message))
+def database_initialisation():
+    cursor = database.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    if len(cursor.fetchall()) <= 0:
+        write_logs("Database inistialisation")
+        cursor.execute("CREATE TABLE 'files' ( 'name' text NOT NULL, 'full_path' text NOT NULL, 'token' text NOT NULL, 'creation_date' bigint NOT NULL, 'checksum' text NOT NULL, 'last_check' bigint NOT NULL );")
 
 
 def initialisation():
     path_initialisation()
+    database_initialisation()
 
 
 class request_handler(BaseHTTPRequestHandler):
