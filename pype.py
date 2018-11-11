@@ -49,7 +49,8 @@ def array_to_path(path_array):
 
 
 def path_initialisation():
-    directory = path_to_array(directory)
+    global_directory = directory
+    directory = path_to_array(global_directory)
     directory.append("pype")
     # Create directory for Pype if not exist
     if not os.path.exists(array_to_path(directory)):
