@@ -32,6 +32,7 @@ cleaning_interval = 1  # hours
 id_length = 2  # bytes
 max_name_length = 64  # chars
 max_file_size = 52428800  # bytes
+logs_path = "/var/log"
 # SETTINGS END
 
 
@@ -56,6 +57,20 @@ def path_initialisation():
     # Create directory for Pype if not exist
     if not os.path.exists(array_to_path(directory)):
         os.makedirs(array_to_path(directory), 666)
+    global logs_path
+    logs_path = path_to_array(logs_path)
+    logs_path.append("pype")
+    # Create directory for Pype if not exist
+    if not os.path.exists(array_to_path(logs_path)):
+        os.makedirs(array_to_path(logs_path), 666)
+
+
+def write_logs(message,error=False):
+    now = time.asctime(time.localtime(time.time()))
+    logs_file = 'request.log' if error else 'error.log'
+    logs_full_path = array_to_path(logs_path + [logs_file])
+    with open(logs_full_path, 'a') as logs:
+        logs.write("{} : {}\n".format(now, message))
 
 
 def initialisation():
@@ -106,7 +121,7 @@ class request_handler(BaseHTTPRequestHandler):
                         self.file_path.pop()
                         shutil.rmtree(array_to_path(self.file_path))
                         # Show deletion in server logs
-                        print("{} deleted !\n".format(array_to_path(self.file_path)))
+                        write_logs("{} deleted !\n".format(array_to_path(self.file_path)))
         else:
             # Open HTML homepage file
             with open('index.html', 'r') as homepage:
@@ -205,7 +220,7 @@ def clean_files():
                 removed.append(file)
                 shutil.rmtree(array_to_path(directory+[file]))
     if len(removed) > 0:
-        print("Files removed : {}".format(', '.join(removed)))
+        write_logs("Files removed : {}".format(', '.join(removed)))
 
 
 if __name__ == "__main__":
