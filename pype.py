@@ -198,6 +198,7 @@ def clean_files():
     limit_date = now - (delete_limit * 3600)
     for file in os.listdir(array_to_path(directory)):
         if os.path.exists(array_to_path(directory+[file])):
+            # Get informations about this file
             stats = os.stat(array_to_path(directory+[file]))
             timestamp = stats.st_ctime
             if timestamp < limit_date:
@@ -212,5 +213,6 @@ if __name__ == "__main__":
     server.daemon = True
     server.start()
     initialisation()
+    # Launch auto cleaning interval
     set_interval(clean_files, (cleaning_interval * 3600))
     signal.pause()
