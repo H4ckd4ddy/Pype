@@ -17,7 +17,7 @@ import time
 import signal
 import threading
 from threading import Thread
-from http.server import HTTPServer, baseHTTPRequestHandler
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
 import binascii
 import shutil
@@ -54,7 +54,7 @@ def path_initialisation():
 
 
 
-class request_handler(baseHTTPRequestHandler):
+class request_handler(BaseHTTPRequestHandler):
     def do_GET(self):  # For home page and download
         if '?' in self.path:
             option = self.path.split('?')[1]
