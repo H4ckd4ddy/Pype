@@ -70,6 +70,7 @@ class request_handler(BaseHTTPRequestHandler):
             self.option = self.path.split('?')[1]
             self.request_path = self.path.split('?')[0]
         else:
+            # No options
             self.option = None
             self.request_path = self.path
         # Convert path of request to array for easy manipulation
@@ -86,28 +87,34 @@ class request_handler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.response = "Name: {}\nSize: {}\nCountdown: {} minute(s)\n"
                     self.file.countdown = round((((delete_limit * 3600) + self.file.stat.st_ctime) - time.time())/60)
+                    # Place data in response
                     self.response = self.response.format(path_to_array(self.file.name)[-1], self.file.stat.st_size, self.file.countdown)
+                    # Send response
                     self.wfile.write(str.encode(self.response))
                 else:
                     self.send_response(200)
                     self.send_header("Content-Type", 'application/octet-stream')
                     contentDisposition = 'attachment; filename="{}"'
-                    #tmpPath = os.path.basename(file_path)
                     contentDisposition = contentDisposition.format(self.file.name)
-                    self.send_header("Content-Disposition", )
+                    self.send_header("Content-Disposition", contentDisposition)
                     self.send_header("Content-Length", str(self.file.stat.st_size))
                     self.end_headers()
                     shutil.copyfileobj(self.file, self.wfile)
+                    # If user want deleted file after download
                     if self.option == "delete":
-                        shutil.rmtree(array_to_path(file_path))
-                        print("{} deleted !".format(array_to_path(file_path)))
+                        # Remove file name from path to delete the directory
+                        self.file_path.pop()
+                        shutil.rmtree(array_to_path(self.file_path))
+                        # Show deletion in server logs
+                        print("{} deleted !\n".format(array_to_path(self.file_path)))
         else:
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            html = "test"
-            html = base64.urlsafe_b64decode(html).decode("utf-8")
-            self.wfile.write(str.encode(html.replace("[url]", url)))
+            # Open HTML homepage file
+            with open('index.html', 'r') as homepage:
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                # Send HTML page with replaced data
+                self.wfile.write(str.encode(homepage.read().replace("[url]", url)))
         return
 
     def do_PUT(self):  # For upload
@@ -184,8 +191,10 @@ def set_interval(func, time):
 
 
 def clean_files():
+    # Create list of deleted files
     removed = []
     now = time.time()
+    # Compute the limit_date from setings
     limit_date = now - (delete_limit * 3600)
     for file in os.listdir(directory+"/pype/"):
         if os.path.exists(directory+"/pype/"+file):
