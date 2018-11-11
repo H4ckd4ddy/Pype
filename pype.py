@@ -45,12 +45,13 @@ def path_to_array(path):
 
 def array_to_path(path_array):
     # Join array
-    return '/'.join(path_array)
+    path = '/' + '/'.join(path_array)
+    return path
 
 
 def path_initialisation():
-    global_directory = directory
-    directory = path_to_array(global_directory)
+    global directory
+    directory = path_to_array(directory)
     directory.append("pype")
     # Create directory for Pype if not exist
     if not os.path.exists(array_to_path(directory)):
@@ -74,16 +75,19 @@ class request_handler(BaseHTTPRequestHandler):
         # Convert path of request to array for easy manipulation
         self.request_path = path_to_array(self.request_path)
         # Construct full path of the file
-        self.file_path = (directory, "pype", self.request_path)
+        self.file_path = directory + ["pype"] + self.request_path
         if len(self.request_path) > 0 and os.path.exists(array_to_path(self.file_path)):
             with open(array_to_path(self.file_path), 'rb') as self.file:
                 # Load file stats
                 self.file.stat = os.fstat(self.file.fileno())
-                if option == "info":
+                if self.option == "info":
                     self.send_response(200)
                     self.send_header('Content-type', 'text/html')
                     self.end_headers()
-                    self.wfile.write(str.encode("Name: {}\nSize: {}\nCountdown: ".format(self.file.name, self.file.stat.st_size)))
+                    self.response = "Name: {}\nSize: {}\nCountdown: {} minute(s)\n"
+                    self.file.countdown = round((((delete_limit * 3600) + self.file.stat.st_ctime) - time.time())/60)
+                    self.response = self.response.format(path_to_array(self.file.name)[-1], self.file.stat.st_size, self.file.countdown)
+                    self.wfile.write(str.encode(self.response))
                 else:
                     self.send_response(200)
                     self.send_header("Content-Type", 'application/octet-stream')
@@ -94,7 +98,7 @@ class request_handler(BaseHTTPRequestHandler):
                     self.send_header("Content-Length", str(self.file.stat.st_size))
                     self.end_headers()
                     shutil.copyfileobj(self.file, self.wfile)
-                    if option == "delete":
+                    if self.option == "delete":
                         shutil.rmtree(array_to_path(file_path))
                         print("{} deleted !".format(array_to_path(file_path)))
         else:
@@ -108,41 +112,41 @@ class request_handler(BaseHTTPRequestHandler):
 
     def do_PUT(self):  # For upload
         # Get the request size in header
-        length = int(self.headers['Content-Length'])
+        self.file_size = int(self.headers['Content-Length'])
         self.send_response(200)  # Send success header
         self.send_header('Content-type', 'text/html')  # Send mime
         self.end_headers()  # Close header
-        file_name = self.path.split("/")[-1]  # Only take the file name
-        if len(file_name) > max_name_length:  # Check file name length
+        self.file_name = self.path.split("/")[-1]  # Only take the file name
+        if len(self.file_name) > max_name_length:  # Check file name length
             HTML_error = "Error: Too long file name (max {} chars)\n"
             HTML_error = HTML_error.format(max_name_length)
             self.wfile.write(str.encode(HTML_error))  # Return error
             return
-        if length > max_file_size:  # Check file size
+        if self.file_size > max_file_size:  # Check file size
             HTML_error = "Error: Too big file (max {})\n"
             HTML_error = HTML_error.format(human_readable(max_file_size))
             self.wfile.write(str.encode(HTML_error))  # Return error
             return
         # Read content from request
-        content = self.rfile.read(length)
+        content = self.rfile.read(self.file_size)
         # Loop for generating uniq token
         while "Bad token":
             # Get random token from urandom
             random_token = binascii.hexlify(os.urandom(id_length)).decode()
             # If directory not exist -> token free
-            if not os.path.exists(directory+"/pype/"+random_token):
+            if not os.path.exists(array_to_path(directory+["pype", random_token])):
                 break
         # Create the token directory
-        os.makedirs(directory+"/pype/"+random_token, 666)
+        os.makedirs(array_to_path(directory+["pype", random_token]), 666)
         # Concat the new file full path
-        file_path = directory+"/pype/"+random_token+"/"+file_name
+        self.file_path = directory+["pype", random_token, self.file_name]
         # Open new file to write binary data
-        current_file = open(file_path, "wb")
+        current_file = open(array_to_path(self.file_path), "wb")
         # Write content of request
         current_file.write(content)
         current_file.close()
         # Return new file url to user
-        self.wfile.write(str.encode(url+random_token+"/"+file_name+"\n"))
+        self.wfile.write(str.encode(url+random_token+"/"+self.file_name+"\n"))
         return
 
 
