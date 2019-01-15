@@ -44,6 +44,7 @@ def settings_initialisation():
         # Take environment settings if defined
         if ("pype_"+setting) in os.environ:
             settings[setting] = os.environ[("pype_"+setting)]
+    settings["current_directory"] = os.path.dirname(os.path.realpath(__file__))
 
 def path_to_array(path):
     # Split path
@@ -110,7 +111,7 @@ class request_handler(BaseHTTPRequestHandler):
                 self.response = "Help !!! \n"
                 self.wfile.write(str.encode(self.response))
             elif self.request_path[0] == "Github-ribbon.png":
-                with open('Github-ribbon.png', 'rb') as image:
+                with open(settings["current_directory"]+'/'+'Github-ribbon.png', 'rb') as image:
                     self.send_response(200)
                     self.send_header('Content-type', 'image/png')
                     self.end_headers()
@@ -153,7 +154,7 @@ class request_handler(BaseHTTPRequestHandler):
                 self.wfile.write(str.encode(self.response))
         else:
             # Open HTML homepage file
-            with open('index.html', 'r') as homepage:
+            with open(settings["current_directory"]+'/'+'index.html', 'r') as homepage:
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
