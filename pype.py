@@ -22,10 +22,11 @@ import os
 import binascii
 import shutil
 import base64
+import math
 
 # SETTINGS BEGIN
 settings = {}
-settings["url"] = "http://pype.sellan.fr"
+settings["url"] = "https://pype.sellan.fr"
 settings["port"] = 80
 settings["directory"] = "/tmp"
 settings["delete_limit"] = 24  # hours
@@ -40,6 +41,7 @@ settings["logs_path"] = "/var/log"
 def settings_initialisation():
     settings_list = ['url', 'port', 'directory', 'delete_limit', 'cleaning_interval', 'id_length', 'max_name_length', 'max_file_size', 'logs_path']
     for setting in settings_list:
+        # Take environment settings if defined
         if ("pype_"+setting) in os.environ:
             settings[setting] = os.environ[("pype_"+setting)]
 
@@ -108,10 +110,10 @@ class request_handler(BaseHTTPRequestHandler):
                     self.send_response(200)
                     self.send_header('Content-type', 'text/html')
                     self.end_headers()
-                    self.response = "Name: {}\nSize: {}\nCountdown: {} minute(s)\n"
-                    self.file.countdown = round((((settings["delete_limit"] * 3600) + self.file.stat.st_ctime) - time.time())/60)
+                    self.response = "Name: {}\nSize: {}\nCountdown: {} \n"
+                    self.file.countdown = round(((settings["delete_limit"] * 3600) + self.file.stat.st_ctime) - time.time())
                     # Place data in response
-                    self.response = self.response.format(path_to_array(self.file.name)[-1], self.file.stat.st_size, self.file.countdown)
+                    self.response = self.response.format(path_to_array(self.file.name)[-1], human_readable(self.file.stat.st_size), human_readable_time(self.file.countdown))
                     # Send response
                     self.wfile.write(str.encode(self.response))
                 else:
@@ -176,15 +178,15 @@ class request_handler(BaseHTTPRequestHandler):
         current_file.write(content)
         current_file.close()
         # Return new file url to user
-        self.wfile.write(str.encode(settings["url"]+random_token+"/"+self.file_name+"\n"))
+        self.wfile.write(str.encode(settings["url"]+"/"+random_token+"/"+self.file_name+"\n"))
         return
 
 
 def run_on(port):
     print("\n")
-    print("/----------------------------\\")
-    print("|  Starting Pype on port {}  |".format(settings["port"]))
-    print("\\----------------------------/")
+    print("/-------------------------------\\")
+    print("|  Starting Pype on port {}  |".format(str(settings["port"]).rjust(5, " ")))
+    print("\\-------------------------------/")
     print("\n")
     print("Reminder : \n")
     print("To upload   :      curl -T file.txt {}".format(settings["url"]))
@@ -205,6 +207,20 @@ def human_readable(bytes):  # Convert bytes to human readable string format
     value[1] = value[1][:2]
     value = '.'.join(value)
     return value+' '+units[cursor]
+
+
+def human_readable_time(seconds):  # Convert time in seconds to human readable string format
+    units = ['second', 'minute', 'hour', 'day', 'week', 'month', 'year']
+    maximum_values = [60, 60, 24, 7, 4, 12, 99]
+    cursor = 0
+    while seconds > maximum_values[cursor]:
+        seconds /= maximum_values[cursor]
+        cursor += 1
+    value = math.ceil(seconds)
+    unit = units[cursor]
+    if float(value) > 1:
+        unit += 's'
+    return str(value)+' '+unit
 
 
 def set_interval(func, time):
