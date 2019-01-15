@@ -102,36 +102,55 @@ class request_handler(BaseHTTPRequestHandler):
         self.request_path = path_to_array(self.request_path)
         # Construct full path of the file
         self.file_path = directory + self.request_path
-        if len(self.request_path) > 0 and os.path.exists(array_to_path(self.file_path)):
-            with open(array_to_path(self.file_path), 'rb') as self.file:
-                # Load file stats
-                self.file.stat = os.fstat(self.file.fileno())
-                if self.option == "info":
+        if len(self.request_path) > 0:
+            if self.request_path[0] == "help":
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.response = "Help !!! \n"
+                self.wfile.write(str.encode(self.response))
+            elif self.request_path[0] == "Github-ribbon.png":
+                with open('Github-ribbon.png', 'rb') as image:
                     self.send_response(200)
-                    self.send_header('Content-type', 'text/html')
+                    self.send_header('Content-type', 'image/png')
                     self.end_headers()
-                    self.response = "Name: {}\nSize: {}\nCountdown: {} \n"
-                    self.file.countdown = round(((settings["delete_limit"] * 3600) + self.file.stat.st_ctime) - time.time())
-                    # Place data in response
-                    self.response = self.response.format(path_to_array(self.file.name)[-1], human_readable(self.file.stat.st_size), human_readable_time(self.file.countdown))
-                    # Send response
-                    self.wfile.write(str.encode(self.response))
-                else:
-                    self.send_response(200)
-                    self.send_header("Content-Type", 'application/octet-stream')
-                    contentDisposition = 'attachment; filename="{}"'
-                    contentDisposition = contentDisposition.format(self.file.name)
-                    self.send_header("Content-Disposition", contentDisposition)
-                    self.send_header("Content-Length", str(self.file.stat.st_size))
-                    self.end_headers()
-                    shutil.copyfileobj(self.file, self.wfile)
-                    # If user want deleted file after download
-                    if self.option == "delete":
-                        # Remove file name from path to delete the directory
-                        self.file_path.pop()
-                        shutil.rmtree(array_to_path(self.file_path))
-                        # Show deletion in server logs
-                        write_logs("{} deleted !\n".format(array_to_path(self.file_path)))
+                    self.wfile.write(image.read())
+            elif os.path.exists(array_to_path(self.file_path)):
+                with open(array_to_path(self.file_path), 'rb') as self.file:
+                    # Load file stats
+                    self.file.stat = os.fstat(self.file.fileno())
+                    if self.option == "info":
+                        self.send_response(200)
+                        self.send_header('Content-type', 'text/html')
+                        self.end_headers()
+                        self.response = "Name: {}\nSize: {}\nCountdown: {} \n"
+                        self.file.countdown = round(((settings["delete_limit"] * 3600) + self.file.stat.st_ctime) - time.time())
+                        # Place data in response
+                        self.response = self.response.format(path_to_array(self.file.name)[-1], human_readable(self.file.stat.st_size), human_readable_time(self.file.countdown))
+                        # Send response
+                        self.wfile.write(str.encode(self.response))
+                    else:
+                        self.send_response(200)
+                        self.send_header("Content-Type", 'application/octet-stream')
+                        contentDisposition = 'attachment; filename="{}"'
+                        contentDisposition = contentDisposition.format(self.file.name)
+                        self.send_header("Content-Disposition", contentDisposition)
+                        self.send_header("Content-Length", str(self.file.stat.st_size))
+                        self.end_headers()
+                        shutil.copyfileobj(self.file, self.wfile)
+                        # If user want deleted file after download
+                        if self.option == "delete":
+                            # Remove file name from path to delete the directory
+                            self.file_path.pop()
+                            shutil.rmtree(array_to_path(self.file_path))
+                            # Show deletion in server logs
+                            write_logs("{} deleted !\n".format(array_to_path(self.file_path)))
+            else:
+                self.send_response(404)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.response = "File not found \n"
+                self.wfile.write(str.encode(self.response))
         else:
             # Open HTML homepage file
             with open('index.html', 'r') as homepage:
