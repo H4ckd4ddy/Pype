@@ -43,6 +43,4 @@ curl https://pype.sellan.fr/id/file.txt?info
 * Show file infos
 * Delete file after download
 * Auto-cleaning files after expiration
-* Check strange event with hids
-* Store hids data in SQLite3 database
 * Store logs (split standard events and errors)
