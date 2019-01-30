@@ -37,10 +37,8 @@ settings["max_file_size"] = 52428800  # bytes
 settings["logs_path"] = "/var/log"
 # SETTINGS END
 
-
 def settings_initialisation():
-    settings_list = ['url', 'port', 'directory', 'delete_limit', 'cleaning_interval', 'id_length', 'max_name_length', 'max_file_size', 'logs_path']
-    for setting in settings_list:
+    for setting in settings:
         # Take environment settings if defined
         if ("pype_"+setting) in os.environ:
             settings[setting] = os.environ[("pype_"+setting)]
