@@ -1,4 +1,7 @@
 # Pype
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/sellan/Pype/blob/master/LICENSE)
+
 Simple file sharing server, to upload and download file from cli
 
 ## Usage
