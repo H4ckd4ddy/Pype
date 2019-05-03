@@ -4,6 +4,8 @@
 
 Simple file sharing server, to upload and download file from cli
 
+[Use the online version](https://pype.sellan.fr)
+
 ## Usage
 
 #### Launch server
