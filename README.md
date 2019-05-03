@@ -39,6 +39,8 @@ wget https://pype.sellan.fr/id/file.txt?delete
 curl https://pype.sellan.fr/id/file.txt?info
 ```
 
+For easyest usage, you can [add a Pype alias](https://gist.github.com/sellan/ed494a4fc4060b12c3da323c34d02cec)
+
 ## Functions
 
 * Show homepage
