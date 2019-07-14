@@ -29,6 +29,7 @@ import pyAesCrypt
 # SETTINGS BEGIN
 settings = {}
 settings["url"] = "https://pype.sellan.fr"
+settings["listen_address"] = "0.0.0.0"
 settings["port"] = 80
 settings["directory"] = "/tmp"
 settings["delete_limit"] = 24  # hours
@@ -251,7 +252,7 @@ def run_on(port):
     print("To upload   :      curl -T file.txt {}".format(settings["url"]))
     print("To download :      curl {}/[id]/file.txt > files.txt".format(settings["url"]))
     print("\n\nLogs : \n")
-    server_address = ('localhost', settings["port"])
+    server_address = (settings["listen_address"], settings["port"])
     httpd = HTTPServer(server_address, request_handler)
     httpd.serve_forever()
 
