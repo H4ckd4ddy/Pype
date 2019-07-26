@@ -38,6 +38,7 @@ settings["id_length"] = 2  # bytes
 settings["max_name_length"] = 64  # chars
 settings["max_file_size"] = 52428800  # bytes
 settings["enable_encryption"] = True
+settings["enable_logs"] = False
 settings["logs_path"] = "/var/log"
 # SETTINGS END
 
@@ -64,11 +65,12 @@ def array_to_path(path_array):
 
 def write_logs(message,error=False):
     print(message)
-    now = time.asctime(time.localtime(time.time()))
-    logs_file = 'request.log' if error else 'error.log'
-    logs_full_path = array_to_path(settings["logs_path"] + [logs_file])
-    with open(logs_full_path, 'a') as logs:
-        logs.write("{} : {}\n".format(now, message))
+    if settings["enable_logs"]:
+        now = time.asctime(time.localtime(time.time()))
+        logs_file = 'request.log' if error else 'error.log'
+        logs_full_path = array_to_path(settings["logs_path"] + [logs_file])
+        with open(logs_full_path, 'a') as logs:
+            logs.write("{} : {}\n".format(now, message))
 
 def path_initialisation():
     global directory
