@@ -18,6 +18,7 @@ import signal
 import threading
 from threading import Thread
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from socketserver import ThreadingMixIn
 import os
 import binascii
 import shutil
@@ -243,6 +244,8 @@ class request_handler(BaseHTTPRequestHandler):
         self.wfile.write(str.encode(settings["url"]+"/"+random_token+"/"+self.file_name+"\n"))
         return
 
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    pass
 
 def run_on(port):
     print("\n")
@@ -255,7 +258,7 @@ def run_on(port):
     print("To download :      curl {}/[id]/file.txt > files.txt".format(settings["url"]))
     print("\n\nLogs : \n")
     server_address = (settings["listen_address"], settings["port"])
-    httpd = HTTPServer(server_address, request_handler)
+    httpd = ThreadedHTTPServer(server_address, request_handler)
     httpd.serve_forever()
 
 
