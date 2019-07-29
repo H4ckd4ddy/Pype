@@ -139,7 +139,7 @@ class request_handler(BaseHTTPRequestHandler):
                         self.send_header('Content-type', 'text/html')
                         self.end_headers()
                         self.response = "Name: {}\nSize: {}\nCountdown: {} \n"
-                        self.file.countdown = round(((settings["delete_limit"] * 3600) + self.file.stat.st_ctime) - time.time())
+                        self.file.countdown = round(((int(settings["delete_limit"]) * 3600) + self.file.stat.st_ctime) - time.time())
                         # Place data in response
                         self.response = self.response.format(self.request_path[-1], human_readable(self.file.stat.st_size), human_readable_time(self.file.countdown))
                         # Send response
@@ -197,14 +197,14 @@ class request_handler(BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')  # Send mime
         self.end_headers()  # Close header
         self.file_name = self.path.split("/")[-1]  # Only take the file name
-        if len(self.file_name) > settings["max_name_length"]:  # Check file name length
+        if len(self.file_name) > int(settings["max_name_length"]):  # Check file name length
             HTML_error = "Error: Too long file name (max {} chars)\n"
             HTML_error = HTML_error.format(settings["max_name_length"])
             self.wfile.write(str.encode(HTML_error))  # Return error
             return
-        if self.file_size > settings["max_file_size"]:  # Check file size
+        if self.file_size > int(settings["max_file_size"]):  # Check file size
             HTML_error = "Error: Too big file (max {})\n"
-            HTML_error = HTML_error.format(human_readable(settings["max_file_size"]))
+            HTML_error = HTML_error.format(human_readable(int(settings["max_file_size"])))
             self.wfile.write(str.encode(HTML_error))  # Return error
             return
         # Read content from request
@@ -212,7 +212,7 @@ class request_handler(BaseHTTPRequestHandler):
         # Loop for generating uniq token
         while "Bad token":
             # Get random token from urandom
-            random_token = binascii.hexlify(os.urandom(settings["id_length"])).decode()
+            random_token = binascii.hexlify(os.urandom(int(settings["id_length"]))).decode()
             # If directory not exist -> token free
             if settings['enable_encryption']:
                 file_key = hashlib.sha512(('/'+random_token+'/'+self.file_name).encode('utf-8')).hexdigest()
@@ -257,7 +257,7 @@ def run_on(port):
     print("To upload   :      curl -T file.txt {}".format(settings["url"]))
     print("To download :      curl {}/[id]/file.txt > files.txt".format(settings["url"]))
     print("\n\nLogs : \n")
-    server_address = (settings["listen_address"], settings["port"])
+    server_address = (settings["listen_address"], int(settings["port"]))
     httpd = ThreadedHTTPServer(server_address, request_handler)
     httpd.serve_forever()
 
@@ -299,7 +299,7 @@ def clean_files():
     removed = []
     now = time.time()
     # Compute the limit_date from setings
-    limit_date = now - (settings["delete_limit"] * 3600)
+    limit_date = now - (int(settings["delete_limit"]) * 3600)
     
     if settings['enable_encryption']:
         for file in os.listdir(array_to_path(directory)):
@@ -325,10 +325,10 @@ def clean_files():
 
 
 if __name__ == "__main__":
-    server = Thread(target=run_on, args=[settings["port"]])
+    server = Thread(target=run_on, args=[int(settings["port"])])
     server.daemon = True
     server.start()
     initialisation()
     # Launch auto cleaning interval
-    set_interval(clean_files, (settings["cleaning_interval"] * 3600))
+    set_interval(clean_files, (int(settings["cleaning_interval"]) * 3600))
     signal.pause()
