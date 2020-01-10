@@ -193,9 +193,6 @@ class request_handler(BaseHTTPRequestHandler):
     def do_PUT(self):  # For upload
         # Get the request size in header
         self.file_size = int(self.headers['Content-Length'])
-        self.send_response(200)  # Send success header
-        self.send_header('Content-type', 'text/html')  # Send mime
-        self.end_headers()  # Close header
         self.file_name = self.path.split("/")[-1]  # Only take the file name
         if len(self.file_name) > int(settings["max_name_length"]):  # Check file name length
             HTML_error = "Error: Too long file name (max {} chars)\n"
@@ -240,6 +237,9 @@ class request_handler(BaseHTTPRequestHandler):
         if settings['enable_encryption']:
             pyAesCrypt.encryptFile(array_to_path(self.file_path)+".clear", array_to_path(self.file_path), file_key, (64*1024))
             os.remove(array_to_path(self.file_path)+".clear")
+        self.send_response(200)  # Send success header
+        self.send_header('Content-type', 'text/html')  # Send mime
+        self.end_headers()  # Close header
         # Return new file url to user
         self.wfile.write(str.encode(settings["url"]+"/"+random_token+"/"+self.file_name+"\n"))
         return
