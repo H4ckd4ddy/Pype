@@ -195,11 +195,17 @@ class request_handler(BaseHTTPRequestHandler):
         self.file_size = int(self.headers['Content-Length'])
         self.file_name = self.path.split("/")[-1]  # Only take the file name
         if len(self.file_name) > int(settings["max_name_length"]):  # Check file name length
+            self.send_response(400)  # Send error header
+            self.send_header('Content-type', 'text/plain')  # Send mime
+            self.end_headers()  # Close header
             HTML_error = "Error: Too long file name (max {} chars)\n"
             HTML_error = HTML_error.format(settings["max_name_length"])
             self.wfile.write(str.encode(HTML_error))  # Return error
             return
         if self.file_size > int(settings["max_file_size"]):  # Check file size
+            self.send_response(400)  # Send error header
+            self.send_header('Content-type', 'text/plain')  # Send mime
+            self.end_headers()  # Close header
             HTML_error = "Error: Too big file (max {})\n"
             HTML_error = HTML_error.format(human_readable(int(settings["max_file_size"])))
             self.wfile.write(str.encode(HTML_error))  # Return error
