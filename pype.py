@@ -118,7 +118,7 @@ class request_handler(BaseHTTPRequestHandler):
             # Construct full path of the file
             self.file_path = directory + self.request_path
         if len(self.request_path) > 0:
-            if self.request_path[0] == "help" or ((len(self.request_path) > 0) and ("curl" in lower(self.headers['User-Agent']))):
+            if self.request_path[0] == "help":
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
@@ -187,13 +187,20 @@ class request_handler(BaseHTTPRequestHandler):
                 self.response = "File not found \n"
                 self.wfile.write(str.encode(self.response))
         else:
-            # Open HTML homepage file
-            with open(settings["current_directory"]+'/'+'index.html', 'r') as homepage:
+            if "curl" in lower(self.headers['User-Agent']):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
-                # Send HTML page with replaced data
-                self.wfile.write(str.encode(homepage.read().replace("[url]", settings["url"])))
+                with open(settings["current_directory"]+'/'+'help.txt', 'r') as help_file:
+                    self.wfile.write(str.encode(help_file.read().replace("[url]", settings["url"])+"\n"))
+            else:
+                # Open HTML homepage file
+                with open(settings["current_directory"]+'/'+'index.html', 'r') as homepage:
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    # Send HTML page with replaced data
+                    self.wfile.write(str.encode(homepage.read().replace("[url]", settings["url"])))
         return
 
     def do_PUT(self):  # For upload
