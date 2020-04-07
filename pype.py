@@ -187,7 +187,7 @@ class request_handler(BaseHTTPRequestHandler):
                 self.response = "File not found \n"
                 self.wfile.write(str.encode(self.response))
         else:
-            if "curl" in lower(self.headers['User-Agent']):
+            if "curl" in self.headers['User-Agent'].lower():
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
