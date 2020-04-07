@@ -1,0 +1,1 @@
+profile=~/.$(basename $SHELL)rc;echo 'pype(){ curl --progress-bar --upload-file "$1" [url] | cat; }' >> $profile;. $profile

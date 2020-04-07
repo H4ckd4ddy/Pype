@@ -13,6 +13,11 @@ Simple file sharing server, to upload and download file from cli
 ./pype.py
 ```
 
+#### Show help
+```
+curl https://pype.sellan.fr/help
+```
+
 #### Upload a file
 ```
 curl -T file.txt https://pype.sellan.fr
@@ -41,7 +46,17 @@ wget https://pype.sellan.fr/id/file.txt?delete
 curl https://pype.sellan.fr/id/file.txt?info
 ```
 
-For easyest usage, you can [add a Pype alias](https://gist.github.com/H4ckd4ddy/ed494a4fc4060b12c3da323c34d02cec)
+## For easyest usage, you can add a Pype alias
+
+#### Install alias
+```
+curl -s -L https://pype.sellan.fr/install | bash
+```
+
+#### Then, to upload a file
+```
+pype file.txt
+```
 
 ## Functions
 

@@ -124,6 +124,12 @@ class request_handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 with open(settings["current_directory"]+'/'+'help.txt', 'r') as help_file:
                     self.wfile.write(str.encode(help_file.read().replace("[url]", settings["url"])+"\n"))
+            elif self.request_path[0] == "install":
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                with open(settings["current_directory"]+'/'+'alias.sh', 'r') as alias_file:
+                    self.wfile.write(str.encode(help_file.read().replace("[url]", settings["url"])+"\n"))
             elif self.request_path[0] == "Github-ribbon.png":
                 with open(settings["current_directory"]+'/'+'Github-ribbon.png', 'rb') as image:
                     self.send_response(200)
