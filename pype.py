@@ -118,7 +118,7 @@ class request_handler(BaseHTTPRequestHandler):
             # Construct full path of the file
             self.file_path = directory + self.request_path
         if len(self.request_path) > 0:
-            if self.request_path[0] == "help":
+            if self.request_path[0] == "help" or ((len(self.request_path) > 0) and ("curl" in lower(self.headers['User-Agent']))):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
