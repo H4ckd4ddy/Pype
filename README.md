@@ -8,11 +8,6 @@ Simple file sharing server, to upload and download file from cli
 
 ## Usage
 
-#### Launch server
-```
-./pype.py
-```
-
 #### Show help
 ```
 curl https://pype.sellan.fr/help
@@ -56,6 +51,13 @@ curl -s -L https://pype.sellan.fr/install | $SHELL
 #### Then, to upload a file
 ```
 pype file.txt
+```
+
+## Use your own server
+
+#### Launch server
+```
+./pype.py
 ```
 
 ## Functions
