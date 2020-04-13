@@ -50,7 +50,7 @@ curl https://pype.sellan.fr/id/file.txt?info
 
 #### Install alias
 ```
-curl -s -L https://pype.sellan.fr/install | bash
+curl -s -L https://pype.sellan.fr/install | $SHELL
 ```
 
 #### Then, to upload a file
