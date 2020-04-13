@@ -81,6 +81,12 @@
 				margin-top: 50px;
 				font-size: 15px;
 			}
+			#blue {
+				color: #2980cc;
+			}
+			#red {
+				color: #ff5757;
+			}
 			#author {
 				position: absolute;
 				bottom: 10px;
@@ -88,6 +94,81 @@
 				color: #808080;
 			}
 		</style>
+		<script>
+			function update_progress(progress){
+				let bar = document.getElementById('upload')
+				bar.innerHTML = '['+'#'.repeat(progress/2).padEnd(50)+'] '+progress+'%'
+			}
+
+			function upload_error(error){
+				let bar = document.getElementById('upload')
+				bar.innerHTML = 'Error : <span id="red">'+error+'</span>'
+			}
+
+			function upload_done(url){
+				let bar = document.getElementById('upload')
+				bar.innerHTML = 'Upload done : <span id="blue">'+url+'</span>'
+			}
+
+			function upload_file(file_name, file_content){
+				var xhr = null
+				if(window.XMLHttpRequest){ // Firefox et autres
+					xhr = new XMLHttpRequest()
+				}else if(window.ActiveXObject){ // Internet Explorer 
+					try {
+						xhr = new ActiveXObject('Msxml2.XMLHTTP')
+					} catch (e) {
+						xhr = new ActiveXObject('Microsoft.XMLHTTP')
+					}
+				}else{
+					alert('Votre navigateur ne supporte pas les objets XMLHTTPRequest...')
+					xhr = false
+				}
+				xhr.onreadystatechange = function(){
+					if(xhr.readyState == 4 && xhr.status == 200){
+						upload_done(xhr.responseText)
+					}else if(xhr.readyState == 4 && xhr.status != 200){
+						upload_error(xhr.responseText)
+					}
+				}
+				xhr.upload.onprogress = function(e){
+					if(e.lengthComputable){
+						let progress = Math.round(parseFloat(e.loaded / e.total) * 100);
+						update_progress(progress)
+					}
+				}
+				xhr.open('PUT', '/'+file_name, true)
+				xhr.send(file_content)
+			}
+
+			document.addEventListener("DOMContentLoaded", function() {
+				var drop_zone = document.getElementById('CLI')
+
+				drop_zone.addEventListener('dragover', function(e){
+					e.stopPropagation()
+					e.preventDefault()
+					e.dataTransfer.dropEffect = 'copy'
+				})
+
+				drop_zone.addEventListener('drop', function(e){
+					e.stopPropagation()
+					e.preventDefault()
+					var files = e.dataTransfer.files
+
+					for (var i=0, file; file=files[i]; i++){
+						var reader = new FileReader()
+
+						reader.onload = function(){
+							let content = new Blob([reader.result])
+							upload_file(reader.file_name, content)
+						}
+
+						reader.file_name = file.name
+						reader.readAsArrayBuffer(file)
+					}
+				})
+			})
+		</script>
 	</head>
 	<body>
 		<div id='main_title'>Pype</div>
@@ -104,6 +185,10 @@
 				<br/><br/><br/>
 				To upload	:	curl -T file.txt [url]<br/>
 				To download	:	curl [url]/e5f7/file.txt > files.txt<br/>
+				<br/><br/><br/>
+				<center>or</center>
+				<br/><br/><br/>
+				<center><span id='upload'>[ <span id="blue">Drop a file here !</span> ]</span></center>
 			</div>
 		</div>
 		<a href="https://contact.sellan.fr"><div id="author">Etienne SELLAN</div></a>
