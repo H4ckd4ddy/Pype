@@ -25,7 +25,6 @@ import shutil
 import base64
 import math
 import hashlib
-import pyAesCrypt
 
 # SETTINGS BEGIN
 settings = {}
@@ -37,10 +36,7 @@ settings["delete_limit"] = 24  # hours
 settings["cleaning_interval"] = 1  # hours
 settings["id_length"] = 2  # bytes
 settings["max_name_length"] = 64  # chars
-settings["max_file_size"] = 52428800  # bytes
-settings["enable_encryption"] = True
-settings["enable_logs"] = False
-settings["logs_path"] = "/var/log"
+settings["max_file_size"] =  (10*1000*1000*1000)  # bytes
 # SETTINGS END
 
 def settings_initialisation():
@@ -64,15 +60,6 @@ def array_to_path(path_array):
     return path
 
 
-def write_logs(message,error=False):
-    print(message)
-    if settings["enable_logs"]:
-        now = time.asctime(time.localtime(time.time()))
-        logs_file = 'request.log' if error else 'error.log'
-        logs_full_path = array_to_path(settings["logs_path"] + [logs_file])
-        with open(logs_full_path, 'a') as logs:
-            logs.write("{} : {}\n".format(now, message))
-
 def path_initialisation():
     global directory
     directory = path_to_array(settings["directory"])
@@ -80,12 +67,6 @@ def path_initialisation():
     # Create directory for Pype if not exist
     if not os.path.exists(array_to_path(directory)):
         os.makedirs(array_to_path(directory), 666)
-    global logs_path
-    logs_path = path_to_array(settings["logs_path"])
-    logs_path.append("pype")
-    # Create directory for Pype if not exist
-    if not os.path.exists(array_to_path(logs_path)):
-        os.makedirs(array_to_path(logs_path), 666)
 
 
 def initialisation():
@@ -104,19 +85,13 @@ class request_handler(BaseHTTPRequestHandler):
             # No options
             self.option = None
             self.request_path = self.path
-            
-        if settings["enable_encryption"]:
-            file_key = hashlib.sha512(self.request_path.encode('utf-8')).hexdigest()
-            file_name_digest = hashlib.sha512(file_key.encode('utf-8')).hexdigest()
-            # Convert path of request to array for easy manipulation
-            self.request_path = path_to_array(self.request_path)
-            # Construct full path of the file
-            self.file_path = directory + [file_name_digest]
-        else:
-            # Convert path of request to array for easy manipulation
-            self.request_path = path_to_array(self.request_path)
-            # Construct full path of the file
-            self.file_path = directory + self.request_path
+        
+        path_digest = hashlib.sha512(self.request_path.encode('utf-8')).hexdigest()
+        # Convert path of request to array for easy manipulation
+        self.request_path = path_to_array(self.request_path)
+        # Construct full path of the file
+        self.file_path = directory+[path_digest]
+
         if len(self.request_path) > 0:
             if self.request_path[0] == "help":
                 self.send_response(200)
@@ -151,35 +126,18 @@ class request_handler(BaseHTTPRequestHandler):
                         # Send response
                         self.wfile.write(str.encode(self.response))
                     else:
-                        if settings["enable_encryption"]:
-                            decrypted_file_path = array_to_path(self.file_path)+'.clear'
-                            print(decrypted_file_path)
-                            pyAesCrypt.decryptFile(array_to_path(self.file_path), decrypted_file_path, file_key, (64*1024))
-                            self.file = open(decrypted_file_path, 'rb')
-                            self.file.stat = os.fstat(self.file.fileno())
                         self.send_response(200)
                         self.send_header("Content-Type", 'application/octet-stream')
                         contentDisposition = 'attachment; filename="{}"'
-                        if settings["enable_encryption"]:
-                            contentDisposition = contentDisposition.format(self.request_path[-1])
-                        else:
-                            contentDisposition = contentDisposition.format(self.file.name)
+                        contentDisposition = contentDisposition.format(self.request_path[-1])
                         self.send_header("Content-Disposition", contentDisposition)
                         self.send_header("Content-Length", str(self.file.stat.st_size))
                         self.end_headers()
                         shutil.copyfileobj(self.file, self.wfile)
-                        if settings["enable_encryption"]:
-                            os.remove(decrypted_file_path)
                         # If user want deleted file after download
                         if self.option == "delete":
-                            if settings["enable_encryption"]:
-                                os.remove(array_to_path(self.file_path))
-                            else:
-                                # Remove file name from path to delete the directory
-                                self.file_path.pop()
-                                shutil.rmtree(array_to_path(self.file_path))
-                            # Show deletion in server logs
-                            write_logs("{} deleted !\n".format(array_to_path(self.file_path)))
+                            os.remove(array_to_path(self.file_path))
+                            print("{} deleted !\n".format(array_to_path(self.file_path)))
             else:
                 self.send_response(404)
                 self.send_header('Content-type', 'text/html')
@@ -230,32 +188,19 @@ class request_handler(BaseHTTPRequestHandler):
             # Get random token from urandom
             random_token = binascii.hexlify(os.urandom(int(settings["id_length"]))).decode()
             # If directory not exist -> token free
-            if settings['enable_encryption']:
-                file_key = hashlib.sha512(('/'+random_token+'/'+self.file_name).encode('utf-8')).hexdigest()
-                file_name_digest = hashlib.sha512(file_key.encode('utf-8')).hexdigest()
-                if not os.path.isfile(array_to_path(directory+[file_key])):
-                    break
-            else:
-                if not os.path.exists(array_to_path(directory+[random_token])):
-                    break
-        if settings['enable_encryption']:
-            # Concat the new file full path
-            self.file_path = directory+[file_name_digest]
-            # Open tmp new file to write binary data
-            current_file = open(array_to_path(self.file_path)+".clear", "wb")
-        else:
-            # Create the token directory
-            os.makedirs(array_to_path(directory+[random_token]), 666)
-            # Concat the new file full path
-            self.file_path = directory+[random_token, self.file_name]
-            # Open new file to write binary data
-            current_file = open(array_to_path(self.file_path), "wb")
+            path_digest = hashlib.sha512(('/'+random_token+'/'+self.file_name).encode('utf-8')).hexdigest()
+            if not os.path.isfile(array_to_path(directory+[path_digest])):
+                break
+        
+        # Concat the new file full path
+        self.file_path = directory+[path_digest]
+
+        # Open tmp new file to write binary data
+        current_file = open(array_to_path(self.file_path), "wb")
         # Write content of request
         current_file.write(content)
         current_file.close()
-        if settings['enable_encryption']:
-            pyAesCrypt.encryptFile(array_to_path(self.file_path)+".clear", array_to_path(self.file_path), file_key, (64*1024))
-            os.remove(array_to_path(self.file_path)+".clear")
+
         self.send_response(200)  # Send success header
         self.send_header('Content-type', 'text/html')  # Send mime
         self.end_headers()  # Close header
@@ -320,27 +265,17 @@ def clean_files():
     # Compute the limit_date from setings
     limit_date = now - (int(settings["delete_limit"]) * 3600)
     
-    if settings['enable_encryption']:
-        for file in os.listdir(array_to_path(directory)):
-            if os.path.isfile(array_to_path(directory+[file])):
-                # Get informations about this file
-                stats = os.stat(array_to_path(directory+[file]))
-                timestamp = stats.st_ctime
-                if timestamp < limit_date:
-                    removed.append(file)
-                    os.remove(array_to_path(directory+[file]))
-    else:
-        for rep in os.listdir(array_to_path(directory)):
-            if os.path.exists(array_to_path(directory+[rep])):
-                # Get informations about this directory
-                stats = os.stat(array_to_path(directory+[rep]))
-                timestamp = stats.st_ctime
-                if timestamp < limit_date:
-                    removed.append(rep)
-                    shutil.rmtree(array_to_path(directory+[rep]))
+    for file in os.listdir(array_to_path(directory)):
+        if os.path.isfile(array_to_path(directory+[file])):
+            # Get informations about this file
+            stats = os.stat(array_to_path(directory+[file]))
+            timestamp = stats.st_ctime
+            if timestamp < limit_date:
+                removed.append(file)
+                os.remove(array_to_path(directory+[file]))
 
     if len(removed) > 0:
-        write_logs("Files removed : {}".format(', '.join(removed)))
+        print("Files removed : {}".format(', '.join(removed)))
 
 
 if __name__ == "__main__":

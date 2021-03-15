@@ -67,4 +67,3 @@ pype file.txt
 * Show file infos
 * Delete file after download
 * Auto-cleaning files after expiration
-* Store logs (split standard events and errors)
