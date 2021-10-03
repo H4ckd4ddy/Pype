@@ -83,6 +83,7 @@
 			}
 			#upload {
 				white-space: pre;
+				cursor: pointer;
 			}
 			#blue {
 				color: #2980cc;
@@ -146,6 +147,8 @@
 
 			document.addEventListener("DOMContentLoaded", function() {
 				var drop_zone = document.getElementById('CLI')
+				var file_input = document.getElementById('file_input')
+				var upload_string = document.getElementById('upload')
 
 				drop_zone.addEventListener('dragover', function(e){
 					e.stopPropagation()
@@ -158,6 +161,25 @@
 					e.preventDefault()
 					var files = e.dataTransfer.files
 
+					for (var i=0, file; file=files[i]; i++){
+						var reader = new FileReader()
+
+						reader.onload = function(){
+							let content = new Blob([reader.result])
+							upload_file(reader.file_name, content)
+						}
+
+						reader.file_name = file.name
+						reader.readAsArrayBuffer(file)
+					}
+				})
+
+				upload_string.addEventListener('click', function(e){
+					file_input.click()
+				})
+
+				file_input.addEventListener('change', function(e){
+					var files = file_input.files
 					for (var i=0, file; file=files[i]; i++){
 						var reader = new FileReader()
 
@@ -191,7 +213,8 @@
 				<br/><br/><br/>
 				<center>or</center>
 				<br/><br/><br/>
-				<center><span id='upload'>[ <span id="blue">Drop a file here !</span> ]</span></center>
+				<center><span id='upload'>[ <span id="blue">Drop a file or click here !</span> ]</span></center>
+				<input id="file_input" type="file" style="display: none" />
 			</div>
 		</div>
 		<a href="https://contact.sellan.fr"><div id="author">Etienne SELLAN</div></a>
